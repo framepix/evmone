@@ -142,8 +142,9 @@ void run_blockchain_tests(std::span<const BlockchainTest> tests, evmc::VM& vm)
         std::unordered_map<int64_t, hash256> known_block_hashes{
             {c.genesis_block_header.block_number, c.genesis_block_header.hash}};
 
-        for (const auto& test_block : c.test_blocks)
+        for (size_t i = 0; i != c.test_blocks.size(); ++i)
         {
+            const auto& test_block = c.test_blocks[i];
             auto bi = test_block.block_info;
             bi.known_block_hashes = known_block_hashes;
 
@@ -158,8 +159,16 @@ void run_blockchain_tests(std::span<const BlockchainTest> tests, evmc::VM& vm)
             SCOPED_TRACE(std::string{evmc::to_string(rev)} + '/' + std::to_string(case_index) +
                          '/' + c.name + '/' + std::to_string(test_block.block_info.number));
 
-            EXPECT_EQ(
-                state::mpt_hash(TestState{state}), test_block.expected_block_header.state_root);
+            if (i < 5 || i >= c.test_blocks.size() - 5)
+            {
+                // Only check state hashes for first (early problems)
+                // and last (final check of all blocks) 5 blocks.
+                // Otherwise, for very long blockchain test we spend a lot of time in MPT hashing
+                // because the implementation of it is very simplistic: the trie is not updated
+                // along the state changes but a new trie is build from scratch for every block.
+                EXPECT_EQ(
+                    state::mpt_hash(TestState{state}), test_block.expected_block_header.state_root);
+            }
 
             if (rev >= EVMC_SHANGHAI)
             {
