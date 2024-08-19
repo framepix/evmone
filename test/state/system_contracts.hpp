@@ -7,7 +7,7 @@
 
 namespace evmone::state
 {
-class BlockInfo;
+struct BlockInfo;
 class State;
 
 /// Performs the system call: invokes system contracts.
