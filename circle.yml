@@ -363,6 +363,14 @@ jobs:
           working_directory: ~/build
           command: >
             bin/evmone-blockchaintest ~/spec-tests/fixtures/blockchain_tests
+      - download_execution_spec_tests:
+          release: v3.0.0
+          fixtures_suffix: develop
+      - run:
+          name: "Execution spec tests (EIP-2935)"
+          working_directory: ~/build
+          command: >
+            bin/evmone-blockchaintest ~/spec-tests/fixtures/blockchain_tests/prague/eip2935_historical_block_hashes_from_state
       - collect_coverage_gcc
       - upload_coverage:
           flags: execution_spec_tests
