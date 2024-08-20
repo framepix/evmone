@@ -75,6 +75,8 @@ TransitionResult apply_block(state::State& state, evmc::VM& vm, const state::Blo
         }
     }
 
+    collect_requests(state, rev, vm);
+
     state::finalize(state, rev, block.coinbase, block_reward, block.ommers, block.withdrawals);
 
     const auto bloom = compute_bloom_filter(receipts);

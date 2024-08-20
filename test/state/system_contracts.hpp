@@ -26,4 +26,18 @@ class State;
 /// Executes code of pre-defined accounts via pseudo-transaction from the system sender (0xff...fe).
 /// The sender's nonce is not increased.
 void system_call(State& state, const BlockInfo& block, evmc_revision rev, evmc::VM& vm);
+
+struct Request
+{
+    enum class Kind : uint8_t
+    {
+        withdrawal = 0x01
+    };
+
+    Kind kind;
+    std::vector<std::byte> payload;
+};
+
+void collect_requests(State& state, evmc_revision rev, evmc::VM& vm);
+
 }  // namespace evmone::state

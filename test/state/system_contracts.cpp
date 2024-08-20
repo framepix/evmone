@@ -4,7 +4,10 @@
 
 #include "system_contracts.hpp"
 #include "host.hpp"
+#include "rlp.hpp"
 #include "state.hpp"
+
+#include <iostream>
 
 namespace evmone::state
 {
@@ -72,5 +75,49 @@ void system_call(State& state, const BlockInfo& block, evmc_revision rev, evmc::
             val.original = val.current;
         }
     }
+}
+
+void collect_requests(State& state, evmc_revision rev, evmc::VM& vm)
+{
+    if (rev < EVMC_PRAGUE)
+        return;
+
+    static constexpr auto WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS =
+        0x00A3ca265EBcb825B45F985A16CEFB49958cE017_address;
+
+    const auto acc = state.find(WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS);
+    if (acc == nullptr)
+        return;
+
+    const evmc_message msg{
+        .kind = EVMC_CALL,
+        .gas = 30'000'000,
+        .recipient = WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS,
+        .sender = SYSTEM_ADDRESS,
+    };
+
+    const Transaction empty_tx{};
+    const BlockInfo block{};
+    Host host{rev, vm, state, block, empty_tx};
+    const auto& code = acc->code;
+    const auto res = vm.execute(host, rev, msg, code.data(), code.size());
+    if (res.status_code != EVMC_SUCCESS)
+        return;
+
+    auto output = bytes_view{res.output_data, res.output_size};
+    static constexpr size_t SIZE = 20 + 48 + 8;
+    while (output.size() >= SIZE)
+    {
+        const auto source_address = output.substr(0, 20);
+        const auto withdrawal_pubkey = output.substr(20, 48);
+        const auto amount = rlp::trim(output.substr(20 + 48, 8));
+
+        std::cerr << hex(source_address) << " " << hex(withdrawal_pubkey) << " " << hex(amount)
+                  << '\n';
+
+        output = output.substr(SIZE);
+    }
+
+    // std::cerr << "output: " << hex(output) << "\n";
 }
 }  // namespace evmone::state
