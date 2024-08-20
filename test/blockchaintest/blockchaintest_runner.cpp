@@ -75,7 +75,7 @@ TransitionResult apply_block(state::State& state, evmc::VM& vm, const state::Blo
         }
     }
 
-    collect_requests(state, rev, vm);
+    const auto requests = collect_requests(state, rev, vm);
 
     state::finalize(state, rev, block.coinbase, block_reward, block.ommers, block.withdrawals);
 

@@ -35,9 +35,9 @@ struct Request
     };
 
     Kind kind;
-    std::vector<std::byte> payload;
+    evmc::bytes payload;
 };
 
-void collect_requests(State& state, evmc_revision rev, evmc::VM& vm);
+std::vector<Request> collect_requests(State& state, evmc_revision rev, evmc::VM& vm);
 
 }  // namespace evmone::state

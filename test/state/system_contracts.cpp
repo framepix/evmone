@@ -77,17 +77,17 @@ void system_call(State& state, const BlockInfo& block, evmc_revision rev, evmc::
     }
 }
 
-void collect_requests(State& state, evmc_revision rev, evmc::VM& vm)
+std::vector<Request> collect_requests(State& state, evmc_revision rev, evmc::VM& vm)
 {
     if (rev < EVMC_PRAGUE)
-        return;
+        return {};
 
     static constexpr auto WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS =
         0x00A3ca265EBcb825B45F985A16CEFB49958cE017_address;
 
     const auto acc = state.find(WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS);
     if (acc == nullptr)
-        return;
+        return {};
 
     const evmc_message msg{
         .kind = EVMC_CALL,
@@ -102,10 +102,11 @@ void collect_requests(State& state, evmc_revision rev, evmc::VM& vm)
     const auto& code = acc->code;
     const auto res = vm.execute(host, rev, msg, code.data(), code.size());
     if (res.status_code != EVMC_SUCCESS)
-        return;
+        return {};
 
     auto output = bytes_view{res.output_data, res.output_size};
     static constexpr size_t SIZE = 20 + 48 + 8;
+    std::vector<Request> requests;
     while (output.size() >= SIZE)
     {
         const auto source_address = output.substr(0, 20);
@@ -115,9 +116,12 @@ void collect_requests(State& state, evmc_revision rev, evmc::VM& vm)
         std::cerr << hex(source_address) << " " << hex(withdrawal_pubkey) << " " << hex(amount)
                   << '\n';
 
+        Request req{Request::Kind::withdrawal,
+            rlp::encode_tuple(source_address, withdrawal_pubkey, amount)};
+        requests.push_back(std::move(req));
+
         output = output.substr(SIZE);
     }
-
-    // std::cerr << "output: " << hex(output) << "\n";
+    return requests;
 }
 }  // namespace evmone::state
