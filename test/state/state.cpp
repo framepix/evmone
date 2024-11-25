@@ -506,9 +506,10 @@ TransactionReceipt transition(const StateView& state_view, const BlockInfo& bloc
                 continue;
         }
 
-        const bytes new_code(bytes(DELEGATION_MAGIC) + bytes(auth.addr));
-        authority_ptr->code_changed = (authority_ptr->code != new_code);
-        authority_ptr->code = new_code;
+        bytes new_code(bytes(DELEGATION_MAGIC) + bytes(auth.addr));
+        if (authority_ptr->code != new_code)
+            authority_ptr->code_changed = true;
+        authority_ptr->code = std::move(new_code);
 
         // TODO The hash of delegated accounts is not used anywhere,
         // it is only important that it is not a hash of empty.
