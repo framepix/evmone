@@ -46,6 +46,12 @@ constexpr std::array SYSTEM_CONTRACTS_BLOCK_END{
         nullptr,
         Requests::Type::withdrawal,
     },
+    SystemContract{
+        EVMC_PRAGUE,
+        CONSOLIDATION_REQUEST_ADDRESS,
+        nullptr,
+        Requests::Type::consolidation,
+    },
 };
 
 static_assert(std::ranges::is_sorted(SYSTEM_CONTRACTS_BLOCK_END,
