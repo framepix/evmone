@@ -224,8 +224,11 @@ int main(int argc, const char* argv[])
             if (rev >= EVMC_PRAGUE)
             {
                 requests.emplace_back(collect_deposit_requests(receipts));
-                requests.emplace_back(state::Requests::Type::withdrawal);
-                requests.emplace_back(state::Requests::Type::consolidation);
+
+                auto system_call_requests =
+                    system_call_block_end(state, block, block_hashes, rev, vm);
+                std::move(system_call_requests.begin(), system_call_requests.end(),
+                    std::back_inserter(requests));
             }
 
             test::finalize(
