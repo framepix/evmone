@@ -42,7 +42,7 @@
 #     * https://github.com/cpp-pm/gate/
 #     * https://github.com/cpp-pm/hunter
 
-option(HUNTER_ENABLED "Enable Hunter package manager support" ON)
+option(HUNTER_ENABLED "Enable Hunter package manager support" OFF)
 
 if(HUNTER_ENABLED)
   if(CMAKE_VERSION VERSION_LESS "3.5")
@@ -56,9 +56,9 @@ endif()
 
 include(CMakeParseArguments) # cmake_parse_arguments
 
-option(HUNTER_STATUS_PRINT "Print working status" ON)
+option(HUNTER_STATUS_PRINT "Print working status" OFF)
 option(HUNTER_STATUS_DEBUG "Print a lot info" OFF)
-option(HUNTER_TLS_VERIFY "Enable/disable TLS certificate checking on downloads" ON)
+option(HUNTER_TLS_VERIFY "Enable/disable TLS certificate checking on downloads" OFF)
 set(HUNTER_ROOT "" CACHE FILEPATH "Override the HUNTER_ROOT.")
 
 set(HUNTER_ERROR_PAGE "https://hunter.readthedocs.io/en/latest/reference/errors")
