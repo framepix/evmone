@@ -75,7 +75,6 @@ constexpr auto FP_BYTES_OFFSET = 64 - 48;
     return p_affine;
 }
 
-/// Stores fp in 64-bytes array with big endian encoding zero padded.
 void store(uint8_t _rx[64], const blst_fp& _x) noexcept
 {
     std::memset(_rx, 0, FP_BYTES_OFFSET);
@@ -242,8 +241,8 @@ void store(uint8_t _rx[128], const blst_fp2& _x) noexcept
         return true;
     }
 
-    const auto scratch_size = blst_p1s_mult_pippenger_scratch_sizeof(npoints) / sizeof(limb_t);
-    const auto scratch_space = std::make_unique_for_overwrite<limb_t[]>(scratch_size);
+   const auto scratch_size = blst_p1s_mult_pippenger_scratch_sizeof(npoints) / sizeof(limb_t);
+    auto scratch_space = std::unique_ptr<limb_t[]>(new limb_t[scratch_size]); // Changed here
     blst_p1 out;
     blst_p1s_mult_pippenger(
         &out, p1_affine_ptrs.data(), npoints, scalars_ptrs.data(), 256, scratch_space.get());
@@ -308,7 +307,7 @@ void store(uint8_t _rx[128], const blst_fp2& _x) noexcept
     }
 
     const auto scratch_size = blst_p2s_mult_pippenger_scratch_sizeof(npoints) / sizeof(limb_t);
-    const auto scratch_space = std::make_unique_for_overwrite<limb_t[]>(scratch_size);
+    auto scratch_space = std::unique_ptr<limb_t[]>(new limb_t[scratch_size]); // Changed here
     blst_p2 out;
     blst_p2s_mult_pippenger(
         &out, p2_affine_ptrs.data(), npoints, scalars_ptrs.data(), 256, scratch_space.get());
@@ -370,7 +369,7 @@ void store(uint8_t _rx[128], const blst_fp2& _x) noexcept
     auto has_inf = false;
     blst_fp12 acc = *blst_fp12_one();
 
-    const auto Qlines = std::make_unique_for_overwrite<blst_fp6[]>(68);
+    const auto Qlines = std::unique_ptr<blst_fp6[]>(new blst_fp6[68]); // Changed here
 
     for (size_t i = 0; i < npairs; ++i)
     {

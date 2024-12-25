@@ -8,6 +8,7 @@
 #include <bit>
 #include <cstdint>
 #include <utility>
+#include <cstring>
 
 #if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 180000
 // libc++ before version 18 has incorrect std::rotl signature
@@ -24,9 +25,12 @@ template <std::integral T>
 constexpr T byteswap(T value) noexcept
 {
     static_assert(std::has_unique_object_representations_v<T>, "T may not have padding bits");
-    auto value_representation = std::bit_cast<std::array<std::byte, sizeof(T)>>(value);
+    std::array<std::byte, sizeof(T)> value_representation;
+    std::memcpy(value_representation.data(), &value, sizeof(T));
     std::ranges::reverse(value_representation);
-    return std::bit_cast<T>(value_representation);
+    T result;
+    std::memcpy(&result, value_representation.data(), sizeof(T));
+    return result;
 }
 
 /// @file
@@ -129,14 +133,16 @@ inline auto to_le(std::integral auto x) noexcept
 template <typename T>
 inline T load_le(const std::byte* data) noexcept
 {
-    std::array<std::byte, sizeof(T)> bytes{};
-    std::copy_n(data, sizeof(T), bytes.begin());
-    return to_le(std::bit_cast<T>(bytes));
+    T value;
+    std::memcpy(&value, data, sizeof(T));
+    return to_le(value);
 }
 
 inline std::byte* store_le(std::byte* out, std::integral auto x) noexcept
 {
-    return std::ranges::copy(std::bit_cast<std::array<std::byte, sizeof(x)>>(to_le(x)), out).out;
+    x = to_le(x);
+    std::memcpy(out, &x, sizeof(x));
+    return out + sizeof(x);
 }
 
 template <size_t J>
